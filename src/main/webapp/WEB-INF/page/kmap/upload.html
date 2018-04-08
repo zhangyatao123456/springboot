@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>上传专题知识图谱</title>
+    #parse("sys/header.html")
+</head>
+<body>
+<!--知识图谱管理-上传专题图谱-->
+<!--<script type="text/javascript" src="/statics/newlibs/jquery-1.8.3.js"></script>-->
+<script type="text/javascript" src="${rc.contextPath}/js/jquery/jquery.form.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/kmap/upload.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/statics/newlibs/bootstrap-filestyle.js"></script>
+<div class="m-b-md">
+    <p/>
+    <p/>
+    <!--action="/kmap/kmupload.shtml"-->
+    <form class="form-inline" role="form" id="kmUploadForm" method="post" name="uploadForm"
+          enctype="multipart/form-data">
+        <div class="form-group">
+            <table style="padding: 0px;margin: 0px;border: 0px;">
+                <tr>
+                    <td>
+                        <b>图谱类型:</b>&nbsp;
+                        <select id="selmaptype" name="selmode" class="form-control" style="width:40%;">
+                            <option selected value="1">专题知识图谱</option>
+                            <!--<option value="2">数学整体图谱(mini)</option>-->
+                            <!--<option value="3">数学整体图谱(All)</option>-->
+                            <!--<option value="4">英语整体图谱(All)</option>-->
+                        </select>
+                    </td>
+
+                    <td>
+                        <b>科目编号:</b>&nbsp;
+                        <select id="" name="subcode" class="form-control" style="width:65%;">
+                            <option selected value="10">英语</option>
+                            <option selected value="11">英语分级阅读</option>
+                            <option selected value="12">英语词汇</option>
+                            <option selected value="20">数学</option>
+                            <option selected value="30">语文</option>
+                            <option selected value="40">物理</option>
+                            <option selected value="">-- 请选择 --</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="control-label"> <span
+                                class="h4 font-thin v-middle">&nbsp;</span></label><input name="kmapFile"
+                                                                                          class="filestyle"
+                                                                                          data-buttonText="选择文件"
+                                                                                          type="file"
+                                                                                          data-buttonName="btn-primary"
+                                                                                          id="uploadFile">
+                        &nbsp;&nbsp;
+                        <a href="javascript:void(0)" onclick="execClick()" class="btn btn-primary"
+                           id="akmap_search">上传</a>
+                        &nbsp;&nbsp;&nbsp;&nbsp; <a href="javascript:exportTemplate()" class="btn btn-info" id="search">下载模板</a>
+                    </td>
+                    <!--<a href="javascript:exportTemplate()"-->
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+<header class="panel-heading">
+    <div class="doc-buttons">
+        <textarea class="form-control" style="width: 75%; height: 150px;" draggable="false"
+                  id="result_message"></textarea>
+    </div>
+</header>
+<!--下载模板-->
+<script type="text/javascript">
+    function exportTemplate() {
+        var selval = document.getElementById("selmaptype").value;
+        var vhref = "${rc.contextPath}/kmap/export.shtml?ssid=" + selval;
+        window.location.href = vhref;
+
+    }
+</script>
+
+<script src="${rc.contextPath}/js/sys/user.js?_${date.systemTime}"></script>
+
+</body>
+</html>

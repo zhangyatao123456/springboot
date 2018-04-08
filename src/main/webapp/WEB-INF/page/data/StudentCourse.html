@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>学生情况</title>
+  #parse("sys/header.html")
+  <link rel="stylesheet" href="/statics/css/boot.css">
+</head>
+<body id="mainbody">
+<button type="button" class="btn btn-primary" style="position: absolute; left: 30px; top: 20px;" onclick="history.go(-1)">返回</button>
+
+
+<div>
+<div class="container col-md-12 ">
+<div class="panel panel-default">
+  <div class="panel-heading">能力值对比
+    <a href="#" data-toggle="tooltip" title="学苗： 先测平均能力值<=0.6 学中：0.6<先测平均能力值<=0.8 学霸：0.8<先测平均能力值<=1"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a>
+  </div>
+  <div class="panel-body ">
+    <div class="col-md-6">
+      <div id="xiance" style="width: 90%;height:400px;"></div>
+    </div>
+    <div class="col-md-6">
+      <div id="xuexi" style="width: 90%;height:400px;"></div>
+    </div>
+  </div>
+</div>
+  <div  id="app">
+  <div class="panel panel-default">
+    <div class="panel-heading">$!{schoolName}校区学生课次做题时间（单位：分钟）
+      <a href="#" data-toggle="tooltip" title="学苗： 先测平均能力值<=0.6 学中：0.6<先测平均能力值<=0.8 学霸：0.8<先测平均能力值<=1"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a>
+    </div>
+    <div class="panel-body">
+      <div class="cond stime" style="margin-bottom: 100px;">
+        <div class="col-md-6">
+          <select class="form-control course" field="course" id="timeSelect" v-on:change="listCourseUser"  v-model="timeCourseId">
+            <option value="-1">请选择课次</option>
+            #foreach($result in $courses)
+            <option value="$result.courseId">$result.courseName</option>
+            #end
+          </select>
+        </div>
+        <div class="col-md-5">
+          <select class="form-control col-md-6 user" field="user" v-model="timeStudentId">
+            <option value="-1">请选择学生</option>
+            <option v-for="item in courseUser" :value='item.userId'>
+              {{ item.userName }}
+            </option>
+          </select>
+        </div>
+        <div class="col-md-1">
+          <button type="button" class="btn btn-primary" id="timeQuery" @click="timeQuery">查询</button>
+        </div>
+      </div>
+      <div>
+        <div  id="tload" style="display: none;position: absolute; top: 48%;left:48%;" >请选择搜索条件...</div>
+        <div  id="tpro" style="display: none;position: absolute; top: 48%;left:48%;" >数据加载中，请稍等...</div>
+        <div id="time" style="width: 100%;height:400px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-heading">$!{schoolName}校区薄弱知识点提升
+      <a href="#" data-toggle="tooltip" title="学苗： 先测平均能力值<=0.6 学中：0.6<先测平均能力值<=0.8 学霸：0.8<先测平均能力值<=1"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a>
+    </div>
+    <div class="panel-body">
+      <div class="cond sability" style="margin-bottom: 100px;">
+        <div class="col-md-6">
+          <select class="form-control course" field="course" id="abilitySelect" v-on:change="listAbilityUser" v-model="abilityCourseId">
+            <option value="-1">请选择课次</option>
+            #foreach($result in $courses)
+            <option value="$result.courseId">$result.courseName</option>
+            #end
+          </select>
+        </div>
+        <div class="col-md-5">
+          <select class="form-control col-md-6 user" field="user" v-model="abilityStudentId">
+            <option value="-1">请选择学生</option>
+            <option v-for="item in abilityUser" value="{{item.userId}}" :value='item.userId'>
+              {{ item.userName }}
+            </option>
+          </select>
+        </div>
+        <div class="col-md-1">
+          <button type="button" class="btn btn-primary" id="abilityQuery" @click="abilityQuery">查询</button>
+        </div>
+      </div>
+      <div>
+        <div  id="aload" style="display: none;position: absolute; top: 48%;left:48%;" >请选择搜索条件...</div>
+        <div  id="apro" style="display: none; position: absolute; top: 48%;left:48%;" >数据加载中，请稍等...</div>
+        <div id="ability" style="width: 100%;height:400px;"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+</div>
+
+
+<script src="/js/data/model/clone.js"></script>
+<script src="/js/echart/echarts.min.js"></script>
+<script src="/js/echart/dataTool.js"></script>
+<script src="/js/data/model/box.js"></script>
+<script src="/js/data/model/bar.js"></script>
+<script>
+  //薄弱知识点能力变化图
+
+  var vm;
+  var timeChart;
+  var abilityChart;
+
+    function listUsers(courseId,selectName){
+      var data={
+        courseId:courseId,
+        schoolId:vm.q.schoolId,
+      };
+      $.ajax({
+        url: "/StudentUser/list",
+        data: data,
+        success: function (msg) {
+          console.log(msg);
+          if(selectName=='abilityUser'){
+            vm.abilityUser=msg.data;
+          }
+          if(selectName=='courseUser'){
+           vm.courseUser=msg.data;
+          }
+        },error:function(msg){
+          alert("学生列表加载失败，请联系管理员");
+        }
+      })
+    }
+  $(function () {
+    var load = $("#background,#progressBar");
+
+    var event;
+
+    vm = new Vue({
+      el: '#app',
+      data: {
+          abilityCourseId:'-1',
+          abilityStudentId:'-1',
+          timeCourseId:'-1',
+          timeStudentId:'-1',
+          abilityUser:[],
+          courseUser:[],
+        q: {
+          schoolId:"$!{schoolId}",
+        },
+      },
+      methods:{
+//先测能力值对比图
+        refreshXianceChart:function() {
+          var title="先测能力值对比";
+          var xAxis=["$!{schoolName}题量","整体题量"];
+          var dataArray=dataTool.prepareBoxplotData([
+            [
+              #foreach($result in $cresults)
+                #if($velocityCount==$cresults.size())
+                  ${result.preAllweakAbility}
+                #else
+                  ${result.preAllweakAbility},
+                #end
+              #end
+            ],
+            [#foreach($result in $aresults)
+              #if($velocityCount<$aresults.size())
+            ${result.preAllweakAbility},
+                  #else
+            ${result.preAllweakAbility}
+                 #end
+                #end
+            ],
+          ]);
+          var option=buildBox(title,xAxis,dataArray);
+          var quantityContrastChart = echarts.init(document.getElementById('xiance'));
+          quantityContrastChart.setOption(option);
+        },
+        //先测
+        refreshXuexiChart:function() {
+          var title="高效学习能力值对比";
+          var xAxis=["$!{schoolName}题量","整体题量"];
+          var dataArray=dataTool.prepareBoxplotData([
+            [
+                #foreach($result in $cresults)
+              #if($velocityCount<$cresults.size())
+                  ${result.learnAllweakAbility},
+              #else
+                  ${result.learnAllweakAbility}
+                #end
+              #end
+            ],
+            [
+                 #foreach($result in $aresults)
+              #if($velocityCount<$aresults.size())
+          ${result.learnAllweakAbility},
+              #else
+          ${result.learnAllweakAbility}
+        #end
+              #end
+            ],
+          ]);
+          var option=buildBox(title,xAxis,dataArray);
+          var quantityContrastChart = echarts.init(document.getElementById('xuexi'));
+          quantityContrastChart.setOption(option);
+        },
+        //        this.refreshTiliangChart();
+        //校区学生水平对比图
+        refreshSingleChart:function(courseId) {
+          var data={
+            schoolId:$!{schoolId},
+            courseId:courseId,
+            type:'time'
+          }
+          $.ajax({
+            url: "/systemUse/countUserMertic",
+            data: data,
+            success: function (msg) {
+              var title="$!{schoolName}校区学生课次做题时间（单位：分钟）";
+              var legend=[
+              ];
+              var xAxis=[
+              ];
+              var option=buildBar(title,xAxis,false);
+              var serie0={
+                name:'$!{schoolName}学生平均学习时间',
+                type:'bar',
+                data:[]
+               };
+              option=addSerie(option,serie0);
+              var timeChart = echarts.init(document.getElementById('time'));
+              try {
+                timeChart.clear();
+                timeChart.dispose();
+              }catch(err){
+                console.log(err);
+              }
+              timeChart.setOption(option);
+
+            },error:function(msg){
+
+            }
+          })
+        },
+        //整体学生平均饼图
+        listCourseUser:function() {
+          var courseId=$(".stime .course").val();
+          listUsers(courseId,'courseUser');
+          vm.timeStudentId='-1';
+        },
+        listAbilityUser:function() {
+          var courseId=$(".sability .course").val();
+          listUsers(courseId,'abilityUser');
+          vm.abilityStudentId='-1';
+        },
+        timeQuery:function(){
+          if(vm.timeStudentId==-1||vm.timeCourseId==-1){
+            alert('请选择课次或者学生');
+          }else{
+            $("#tload").hide();
+            $("#tpro").show();
+            listStudyTime(vm.timeCourseId,vm.timeStudentId,'time');
+          }
+        },
+        abilityQuery:function(){
+          if(vm.abilityStudentId==-1||vm.abilityCourseId==-1){
+            alert('请选择课次或者学生');
+          }else{
+            $("#aload").hide();
+            $("#apro").show();
+            listStudyTime(vm.abilityCourseId,vm.abilityStudentId,'ability');
+          }
+        }
+      },
+      created: function(){
+        this.refreshXianceChart();
+        this.refreshXuexiChart();
+        init();
+      }
+    })
+  })
+
+
+
+
+
+  function listStudyTime(courseId,userId,type) {
+    if(type=='time'){
+      if(timeChart!=null) {
+        try {
+          timeChart.clear();
+          timeChart.dispose();
+        }catch(err)
+        {
+          console.log(err);
+        }
+      }
+    }else{
+      if(abilityChart!=null) {
+        try {
+        abilityChart.clear();
+        abilityChart.dispose();
+        }catch(err)
+        {
+          console.log(err);
+        }
+      }
+    }
+    var data={
+      schoolId:$!{schoolId},
+        courseId:courseId,
+        type:type,
+        userId:userId
+    }
+    $.ajax({
+      url: "/analyse/listStudyTime",
+      data: data,
+      success: function (msg) {
+        if(type=='time'){
+          drawTimeChart(msg);
+        }else{
+          drawAbilityChart(msg);
+        }
+
+      },error:function(msg){
+
+      }
+    })
+  }
+
+  function drawTimeChart(msg){
+    var title="$!{schoolName}校区学生课次做题时间（单位：分钟）";
+    var xAxis=msg.xAxis;
+    var data=msg.seriesData;
+    var option=buildBar(title,xAxis,true);
+    var serie0={
+      name:'$!{schoolName}学生平均学习时间',
+      type:'bar',
+      data:data,
+      label:{
+        normal:{
+          show:true,
+          position:'inside'
+        }
+      }
+    };
+    option=addSerie(option,serie0);
+
+      if(timeChart!=null) {
+        try {
+      timeChart.clear();
+      timeChart.dispose()
+        }catch(err)
+        {
+          console.log(err);
+        }
+      }
+    timeChart = echarts.init(document.getElementById('time'));
+    timeChart.hideLoading();
+    timeChart.setOption(option);
+    $("#tpro").hide();
+  }
+
+  function drawAbilityChart(msg){
+    var title="$!{schoolName}校区薄弱知识点提升";
+    var xAxis=msg.xAxis;
+    var data=msg.seriesData;
+    var option=buildBar(title,xAxis,true);
+    var serie0={
+      name:'$!{schoolName}学生平均学习时间',
+      type:'bar',
+      data:data,
+      label:{
+        normal:{
+          show:true,
+          position:'inside'
+        }
+      }
+    };
+    option=addSerie(option,serie0);
+
+    if(abilityChart!=null) {
+      try {
+        abilityChart.clear();
+        abilityChart.dispose()
+      }catch(err)
+      {
+        console.log(err);
+      }
+    }
+    abilityChart = echarts.init(document.getElementById('ability'));
+      abilityChart.hideLoading();
+      abilityChart.setOption(option);
+    $("#apro").hide();
+  }
+
+  function init(){
+    $("#tload").show();
+    $("#aload").show();
+  }
+</script>
+</body>
+</html>

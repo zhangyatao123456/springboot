@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>数据分析报告列表展示</title>
+    #parse("sys/header.html")
+</head>
+<body>
+<div id="rrapp" v-cloak>
+
+    <div v-show="showList">
+        <div class="col-md-12 grid-btn">
+            <div class="form-group col-md-3">
+            <select id="selmaptype" name="selmode" v-model='q.file_parent_folder' @keyup.enter="query" class="form-control">
+                <option value="-1" >-- 请选择文件类型 --</option>
+                #foreach($result in $fileParentFolderList)
+                <option value="$result.file_parent_folder">$result.file_parent_folder</option>
+                #end
+            </select>
+                <!--</div>-->
+        </div>
+
+            <div class="form-group col-md-3">
+                <select id="selmaptype1" name="selmode" v-model='q.file_discipline' @keyup.enter="query" class="form-control" placeholder="请选择学科">
+                    <option value="-1">-- 请选择学科 --</option>
+                    #foreach($result in $fileDisciplineList)
+                    <option value="$result.file_discipline">$result.file_discipline</option>
+                    #end
+                </select>
+            </div>
+
+            <div class="form-group col-md-3" style="vertical-align:center">
+                <a class="btn btn-default" @click="query">查询</a>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <table id="jqGrid"></table>
+            <div id="jqGridPager"></div>
+        </div>
+    </div>
+</div>
+<!--添加随机参数为保证缓存的唯一性-->
+<script src="${rc.contextPath}/js/data/showreport.js?_${date.systemTime}">
+</script>
+
+</body>
+</html>

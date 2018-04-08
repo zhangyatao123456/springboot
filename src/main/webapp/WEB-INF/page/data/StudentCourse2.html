@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>学生情况</title>
+  #parse("sys/header.html")
+  <link rel="stylesheet" href="/statics/css/boot.css">
+</head>
+<body id="mainbody">
+<button type="button" class="btn btn-primary" style="position: absolute; left: 30px; top: 20px;" onclick="history.go(-1)">返回</button>
+
+
+<div id="rrapp1">
+<div class="container col-md-12 ">
+<div class="panel panel-default">
+  <div class="panel-heading">能力值对比
+    <a href="#" data-toggle="tooltip" title="学苗： 先测平均能力值<=0.6 学中：0.6<先测平均能力值<=0.8 学霸：0.8<先测平均能力值<=1"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a>
+  </div>
+  <div class="panel-body ">
+    <div class="col-md-6">
+      <div id="xiance" style="width: 90%;height:400px;"></div>
+    </div>
+    <div class="col-md-6">
+      <div id="xuexi" style="width: 90%;height:400px;"></div>
+    </div>
+  </div>
+</div>
+  <div class="panel panel-default">
+    <div class="panel-heading">$!{schoolName}校区学生做题时间
+      <a href="#" data-toggle="tooltip" title="学苗： 先测平均能力值<=0.6 学中：0.6<先测平均能力值<=0.8 学霸：0.8<先测平均能力值<=1"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a>
+    </div>
+    <div class="panel-body">
+      <div class="cond stime" style="margin-bottom: 100px;">
+        <div class="col-md-6">
+          <select class="form-control course" field="course">
+            <option value="-1">请选择课次</option>
+            #foreach($result in $courses)
+            <option value="$result.courseId">$result.courseName</option>
+            #end
+          </select>
+        </div>
+        <div class="col-md-6">
+          <select class="form-control col-md-6 user" field="user">
+            <option value="-1">请选择学生</option>
+            #foreach($result in $users)
+            <option value="$result.userId">$result.userName</option>
+            #end
+          </select>
+        </div>
+      </div>
+      <div>
+        <div id="time" style="width: 100%;height:400px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-heading">$!{schoolName}校区平均能力值提升
+      <a href="#" data-toggle="tooltip" title="学苗： 先测平均能力值<=0.6 学中：0.6<先测平均能力值<=0.8 学霸：0.8<先测平均能力值<=1"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a>
+    </div>
+    <div class="panel-body">
+      <div class="cond sability" style="margin-bottom: 100px;">
+        <div class="col-md-6">
+          <select class="form-control course" field="course">
+            <option value="-1">请选择课次</option>
+            #foreach($result in $courses)
+            <option value="$result.courseId">$result.courseName</option>
+            #end
+          </select>
+        </div>
+        <div class="col-md-6">
+          <select class="form-control col-md-6 user" field="user">
+            <option value="-1">请选择学生</option>
+            #foreach($result in $users)
+            <option value="$result.userId">$result.userName</option>
+            #end
+          </select>
+        </div>
+      </div>
+      <div>
+        <div id="ability" style="width: 100%;height:400px;"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script src="/js/data/model/clone.js"></script>
+<script src="/js/echart/echarts.min.js"></script>
+<script src="/js/echart/dataTool.js"></script>
+<script src="/js/data/model/box.js"></script>
+<script src="/js/data/model/bar.js"></script>
+<script>
+  //薄弱知识点能力变化图
+
+  var vm;
+  var timeChart;
+  var abilityChart;
+  $(function () {
+
+    var event;
+    $(".stime").on("change","select", function(event) {
+      console.log(event);
+      var courseId=$(".stime .course").val();
+      var userId=$(".stime .user").val();
+      if(courseId==-1&&userId==-1){
+        return false;
+      }
+      if(courseId==-1){
+        courseId="";
+      }
+      if(userId==-1){
+        userId="";
+      }
+      listStudyTime(courseId,userId,'time');
+    });
+    $(".sability").on("change","select", function(event) {
+      console.log(event);
+      var courseId=$(".sability .course").val();
+      var userId=$(".sability .user").val();
+      if(courseId==-1||userId==-1){
+        return false;
+      }
+      listStudyTime(courseId,userId,'ability');
+    });
+    vm = new Vue({
+      el: '#rrapp',
+      data: {
+        q: {
+          school:"$!{school}",
+        },
+      },
+      methods:{
+//先测能力值对比图
+        refreshXianceChart:function() {
+          var title="先测能力值对比";
+          var xAxis=["$!{schoolName}题量","整体题量"];
+          var dataArray=dataTool.prepareBoxplotData([
+            [
+              #foreach($result in $cresults)
+                #if($velocityCount==$cresults.size())
+                  ${result.preAllweakAbility}
+                #else
+                  ${result.preAllweakAbility},
+                #end
+              #end
+            ],
+            [#foreach($result in $aresults)
+              #if($velocityCount<$aresults.size())
+            ${result.preAllweakAbility},
+                  #else
+            ${result.preAllweakAbility}
+                 #end
+                #end
+            ],
+          ]);
+          var option=buildBox(title,xAxis,dataArray);
+          var quantityContrastChart = echarts.init(document.getElementById('xiance'));
+          quantityContrastChart.setOption(option);
+        },
+        //先测
+        refreshXuexiChart:function() {
+          var title="高效学习能力值对比";
+          var xAxis=["$!{schoolName}题量","整体题量"];
+          var dataArray=dataTool.prepareBoxplotData([
+            [
+                #foreach($result in $cresults)
+              #if($velocityCount<$cresults.size())
+                  ${result.learnAllweakAbility},
+              #else
+                  ${result.learnAllweakAbility}
+                #end
+              #end
+            ],
+            [
+                 #foreach($result in $aresults)
+              #if($velocityCount<$aresults.size())
+          ${result.learnAllweakAbility},
+              #else
+          ${result.learnAllweakAbility}
+        #end
+              #end
+            ],
+          ]);
+          var option=buildBox(title,xAxis,dataArray);
+          var quantityContrastChart = echarts.init(document.getElementById('xuexi'));
+          quantityContrastChart.setOption(option);
+        },
+        //        this.refreshTiliangChart();
+        //校区学生水平对比图
+        refreshSingleChart:function(courseId) {
+          var data={
+            schoolId:$!{schoolId},
+            courseId:courseId,
+            type:'time'
+          }
+          $.ajax({
+            url: "/systemUse/countUserMertic",
+            data: data,
+            success: function (msg) {
+              var title="$!{schoolName}校区学生做题时间";
+              var legend=[
+              ];
+              var xAxis=[
+              ];
+              var option=buildBar(title,xAxis,false);
+              var serie0={
+                name:'$!{schoolName}学生平均学习时间',
+                type:'bar',
+                data:[]
+               };
+              option=addSerie(option,serie0);
+              var timeChart = echarts.init(document.getElementById('time'));
+              timeChart.clear();
+              timeChart.dispose();
+              timeChart.setOption(option);
+
+            },error:function(msg){
+
+            }
+          })
+        },
+        //整体学生平均饼图
+        refreshAverageChart:function() {
+          var title="$!{schoolName}校区平均能力值提升";
+          var xAxis=["apple第一次课","apple第一次课","apple第一次课","apple第一次课","apple第一次课","apple第一次课"];
+          var data=[1,2,3,4,5,6];
+          var option=buildBar(title,xAxis,data,true);
+          var abilityChart = echarts.init(document.getElementById('ability'));
+          abilityChart.clear();
+          abilityChart.dispose();
+          abilityChart.setOption(option);
+        },
+
+      },
+      created: function(){
+        this.refreshXianceChart();
+        this.refreshXuexiChart();
+//        this.refreshSingleChart();
+//        this.refreshAverageChart();
+        init();
+      }
+    })
+  })
+
+
+
+
+
+  function listStudyTime(courseId,userId,type) {
+    var data={
+      schoolId:$!{schoolId},
+        courseId:courseId,
+        type:type,
+        userId:userId
+    }
+    $.ajax({
+      url: "/analyse/listStudyTime",
+      data: data,
+      success: function (msg) {
+        if(type=='time'){
+          drawTimeChart(msg);
+        }else{
+          drawAbilityChart(msg);
+        }
+
+      },error:function(msg){
+
+      }
+    })
+  }
+
+  function drawTimeChart(msg){
+    var title="$!{schoolName}校区学生做题时间";
+    var xAxis=msg.xAxis;
+    console.log("----------")
+    console.log(xAxis);
+    var data=msg.seriesData;
+    var option=buildBar(title,xAxis,true);
+    var serie0={
+      name:'$!{schoolName}学生平均学习时间',
+      type:'bar',
+      data:data,
+      label:{
+        normal:{
+          show:true,
+          position:'inside'
+        }
+      }
+    };
+    option=addSerie(option,serie0);
+    if(timeChart!=null){
+      timeChart.clear();
+      timeChart.dispose()
+    }
+    timeChart = echarts.init(document.getElementById('time'));
+    timeChart.hideLoading();
+    timeChart.setOption(option);
+
+  }
+
+  function drawAbilityChart(msg){
+    var title="$!{schoolName}校区平均能力值提升";
+    var xAxis=msg.xAxis;
+    var data=msg.seriesData;
+    var option=buildBar(title,xAxis,true);
+    var serie0={
+      name:'$!{schoolName}学生平均学习时间',
+      type:'bar',
+      data:data,
+      label:{
+        normal:{
+          show:true,
+          position:'inside'
+        }
+      }
+    };
+    option=addSerie(option,serie0);
+    if(abilityChart!=null){
+      abilityChart.clear();
+      abilityChart.dispose();
+    }
+    abilityChart = echarts.init(document.getElementById('ability'));
+      abilityChart.hideLoading();
+      abilityChart.setOption(option);
+  }
+
+  function init(){
+     var timeChart = echarts.init(document.getElementById('time'));
+     var abilityChart = echarts.init(document.getElementById('ability'));
+
+    timeChart.showLoading('default',
+        {text:'请选择搜索条件',
+          color:'rgba(255, 255, 255,0)',
+          textColor: '#000',
+          maskColor: 'rgba(255, 255, 255, 0)',
+          zlevel: 0}
+       );
+
+    abilityChart.showLoading('default',
+        {text:'请选择搜索条件',
+      color: 'rgba(255, 255, 255,0)',
+      textColor: '#000',
+      maskColor: 'rgba(255, 255, 255,0)',
+      zlevel: 0}
+    );
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>整体学习情况</title>
+  #parse("sys/header.html")
+  <link rel="stylesheet" href="/statics/css/boot.css">
+</head>
+<body id="mainbody">
+
+<button type="button" class="btn btn-primary" style="position: absolute; left: 30px; top: 20px;" onclick="history.go(-1)">返回</button>
+
+<div class="container col-md-12 ">
+  <div class="panel panel-default">
+  <div class="panel-heading">校区基本情况
+    <a href="#" data-toggle="tooltip" title="学苗： 先测平均能力值<=0.6 学中：0.6<先测平均能力值<=0.8 学霸：0.8<先测平均能力值<=1"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a>
+  </div>
+    <div class="panel-body">
+      <table class="table table-bordered">
+        <tr>
+          <td>校区</td>
+          <td>课程名</td>
+          <td>学生姓名</td>
+          <td>所上课次总计</td>
+        </tr>
+        #if($results.size()>0)
+        #foreach($result in $results)
+        <tr>
+          <td>$!{result.schoolName}</td>
+          <td>$!{result.courseName}</td>
+          <td>$!{result.userName}</td>
+          <td>$!{result.pnum}</td>
+        </tr>
+        #end
+        #else
+        <tr>
+          <td colspan="4" style="text-align: center">暂无数据</td>
+        </tr>
+        #end
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="/js/data/model/clone.js"></script>
+<script src="/js/echart/echarts.min.js"></script>
+<script src="/js/echart/dataTool.js"></script>
+<script src="/js/data/model/box.js"></script>
+<script src="/js/data/model/bar.js"></script>
+<script>
+  //薄弱知识点能力变化图
+
+  var vm;
+  $(function () {
+    vm = new Vue({
+      el: '#rrapp',
+      data: {
+        q: {
+          school:"$!{school}",
+        },
+      },
+      methods:{
+//先测能力值对比图
+        refreshXianceChart:function() {
+          var title="先测能力值对比";
+          var xAxis=["$!{schoolName}题量","整体题量"];
+          var dataArray=dataTool.prepareBoxplotData([
+            [850, 740, 900, 1070, 930, 850, 950, 980, 980, 880, 1000, 980, 930, 650, 760, 810, 1000, 1000, 960, 960],
+            [960, 940, 960, 940, 880, 800, 850, 880, 900, 840, 830, 790, 810, 880, 880, 830, 800, 790, 760, 800],
+          ]);
+          var option=buildBox(title,xAxis,dataArray);
+          var quantityContrastChart = echarts.init(document.getElementById('xiance'));
+          quantityContrastChart.setOption(option);
+        },
+        //先测
+        refreshXuexiChart:function() {
+          var title="高效学习能力值对比";
+          var xAxis=["$!{schoolName}题量","整体题量"];
+          var dataArray=dataTool.prepareBoxplotData([
+            [850, 740, 900, 1070, 930, 850, 950, 980, 980, 880, 1000, 980, 930, 650, 760, 810, 1000, 1000, 960, 960],
+            [960, 940, 960, 940, 880, 800, 850, 880, 900, 840, 830, 790, 810, 880, 880, 830, 800, 790, 760, 800],
+          ]);
+          var option=buildBox(title,xAxis,dataArray);
+          var quantityContrastChart = echarts.init(document.getElementById('xuexi'));
+          quantityContrastChart.setOption(option);
+        },
+        //        this.refreshTiliangChart();
+        //校区学生水平对比图
+        refreshSingleChart:function() {
+          var title="$!{schoolName}校区学生做题时间";
+          var xAxis=["apple第一次课","apple第2次课","apple第3次课","apple第4次课","apple第5次课","apple第6次课"];
+          var data=[1,2,3,4,5,6];
+          var option=buildBar(title,xAxis,data,false);
+          var timeChart = echarts.init(document.getElementById('time'));
+          timeChart.setOption(option);
+        },
+        //整体学生平均饼图
+        refreshAverageChart:function() {
+          var title="$!{schoolName}校区平均能力值提升";
+          var xAxis=["apple第一次课","apple第一次课","apple第一次课","apple第一次课","apple第一次课","apple第一次课"];
+          var data=[1,2,3,4,5,6];
+          var option=buildBar(title,xAxis,data,true);
+          var abilityChart = echarts.init(document.getElementById('ability'));
+          abilityChart.setOption(option);
+        },
+      },
+      created: function(){
+        this.refreshXianceChart();
+        this.refreshXuexiChart();
+        this.refreshSingleChart();
+        this.refreshAverageChart();
+      }
+    })
+  })
+</script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yixue.xdatam.dao.data.AllUserDao">
+
+    <resultMap id="allUserMap" type="com.yixue.xdatam.entity.data.DmAllUserCourseEntity">
+        <id property="id" jdbcType="INTEGER" column="id"/>
+        <result property="cid" jdbcType="INTEGER" column="cid"/>
+        <result property="cname" jdbcType="VARCHAR" column="cname"/>
+        <result property="online" jdbcType="INTEGER" column="online"/>
+        <result property="user_id" jdbcType="INTEGER" column="user_id"/>
+        <result property="user_name" jdbcType="VARCHAR" column="user_name"/>
+        <result property="real_name" jdbcType="VARCHAR" column="real_name"/>
+        <result property="school_name" jdbcType="VARCHAR" column="school_name"/>
+        <result property="course_name" jdbcType="VARCHAR" column="course_name"/>
+
+    </resultMap>
+
+
+
+
+    <!--查询知识图谱编号用-->
+    <select id="selectAllUserMapMessageList" resultMap="allUserMap">
+        <!--session:表示只在本次中有效
+            global：表示在本次连接中不生效，而对于新的连接就生效-->
+
+        select
+        d.cname, d.school_name,d.real_name,d.user_name,d.user_id,d.online
+        from
+        dm_all_user_course_formal d
+        <where>
+            1=1
+            <!--模糊查询-->
+            <if test="real_name != null and real_name.trim() != '' ">
+                <![CDATA[and  d.real_name like concat('%',#{real_name},'%')]]>
+            </if>
+
+            <if test="school_name != null and school_name.trim() != '' ">
+                <![CDATA[and  d.school_name like concat('%',#{school_name},'%')]]>
+            </if>
+
+            <if test="cname != null and cname.trim() != '' ">
+                <![CDATA[and  d.cname like concat('%',#{cname},'%')]]>
+            </if>
+
+            <if test="user_name != null and user_name.trim() != '' ">
+                <![CDATA[and  d.user_name like concat('%',#{user_name},'%')]]>
+            </if>
+
+        </where>
+
+
+        <!--choose：相当于or。when，otherwise标签相当于java中的switch-->
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+
+    </select>
+
+
+    <!--分页用-->
+    <select id="selectAllUserMapMessageListCount" resultMap="allUserMap">
+        <!--session:表示只在本次中有效
+            global：表示在本次连接中不生效，而对于新的连接就生效-->
+
+        select
+        d.cname, d.school_name,d.real_name,d.user_name,d.user_id,d.online
+        from
+        dm_all_user_course_formal d
+        <where>
+            1=1
+            <!--模糊查询-->
+            <if test="real_name != null and real_name.trim() != '' ">
+                <![CDATA[and  d.real_name like concat('%',#{real_name},'%')]]>
+            </if>
+
+            <if test="school_name != null and school_name.trim() != '' ">
+                <![CDATA[and  d.school_name like concat('%',#{school_name},'%')]]>
+            </if>
+
+            <if test="cname != null and cname.trim() != '' ">
+                <![CDATA[and  d.cname like concat('%',#{cname},'%')]]>
+            </if>
+
+            <if test="user_name != null and user_name.trim() != '' ">
+                <![CDATA[and  d.user_name like concat('%',#{user_name},'%')]]>
+            </if>
+
+        </where>
+
+    </select>
+
+    <!--查询所有学校名称列表-->
+    <select id="selectAllSchoolName" resultMap="allUserMap">
+        select
+        DISTINCT d.school_name
+        from
+        dm_all_user_course_formal d
+    </select>
+
+</mapper>

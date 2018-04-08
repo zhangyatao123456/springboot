@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>制作图谱</title>
+    #parse("sys/header.html")
+</head>
+<body>
+<script type="text/javascript">
+    //	var rootPath = "${pageContext.request.contextPath}";
+</script>
+<script type="text/javascript" src="${rc.contextPath}/statics/newlibs/jquery-1.8.3.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/d3/d3.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/d3/dagre-d3.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/common/commonUtil.js"></script>
+<link href="${rc.contextPath}/js/date/bootstrap.min.css" rel="stylesheet">
+
+<style type="text/css">
+    svg {
+        overflow: hidden;
+    }
+
+    .node rect {
+        stroke: #333;
+        stroke-width: 1.5px;
+        fill: #fff;
+    }
+
+    .edgeLabel rect {
+        fill: #fff;
+    }
+
+    .edgePath {
+        stroke: #333;
+        stroke-width: 1.5px;
+        fill: none;
+    }
+
+    text {
+        font-weight: 300;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serf;
+        font-size: 14px;
+    }
+
+    .edgePath path {
+        stroke: #333;
+        fill: #333;
+        stroke-width: 2px;
+    }
+
+</style>
+
+<p/>
+<p/>
+<table id="atable" width="100%" height="100%" cellpadding="0" cellpadding="0" border="0" align="left">
+    <tr>
+        <td colspan="2" style="text-align:left" align="left">
+            &nbsp;<button type="button" id="btn_hideleft" class="btn btn-primary marR10">隐藏编辑区</button>
+            <label id="lblshow_edit" style="width:10px;"></label>
+            <button type="button" id="btn_viewsvg" class="btn btn-primary marR10">预览>></button>
+            <label id="lblshow_spng" style="width:580px;"></label><label id="lblshow_spng2" style="width:10px;"></label>
+            <button type="button" id="btn_savepng" class="btn btn-primary marR10">保存图片</button>
+            &nbsp;&nbsp;&nbsp;<button type="button" id="btn_savesvg" class="btn btn-primary marR10">保存SVG</button>&nbsp;&nbsp;&nbsp;
+            <!--<input type="button" id="btn" class="btn btn-primary marR10" value="清空显示区">-->
+        </td>
+    </tr>
+    <tr>
+        <td id="show_tb_context" style="vertical-align: text-top;padding-left: 8px;">
+			
+			<span id="edit_context">
+			<textarea style="width: 765px; height: 643px;resize:none;scrollbar-3dlight-color: dimgrey;"
+                      placeholder="请输入图谱内容..." draggable="false" id="txta_mapcont"></textarea>
+			<p style="color:red;">*注意:</p>
+			<p style="color:red;">1.每行数据共需3列并保持先后顺序(知识点编号，前置知识点，知识点说明);
+			<p style="color:red;">2.不同列值用"#"符号隔开,多个前置用"&"符号分割,格式如：知识点编号#前置1&前置2#知识点说明;</P>
+			</span>
+        </td>
+
+        <td style="vertical-align: text-top;padding-left: 5px;">
+            <header class="panel-heading">
+                <div class="doc-buttons" data-toggle="buttons">
+                    &nbsp;
+                </div>
+            </header>
+            <svg id="svg_kmap" width="100%" height="1500">
+                <g transform="translate(327.958984375, 20)"/>
+
+            </svg>
+        </td>
+
+    </tr>
+
+</table>
+
+<p id="canvasHolder"></p>
+<div id="png-container"></div>
+<script type="text/javascript">
+
+
+</script>
+<script type="text/javascript" src="${rc.contextPath}/js/d3/svg.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/d3/saveSvgAsPng.js"></script>
+<script type="text/javascript" src="${rc.contextPath}/js/d3/DagreSVG.js"></script>
+<script type="text/javascript">
+    $("#btn_savesvg").click(function () {
+        genuri("svg", "svg_kmap");
+    });
+
+    $("#btn_viewsvg").click(function () {
+        $("#atable svg").html("");
+        checkView();
+    });
+
+
+    $('#btn_hideleft').toggle(function () {
+            $('#show_tb_context').hide();
+            $('#lblshow_spng').hide();
+            $('#lblshow_spng2').show();
+
+        }, function () {
+            $('#show_tb_context').show(); //edit_context
+            $('#lblshow_spng').show();
+            $('#lblshow_spng2').hide();
+        }
+    );
+
+
+    //制作图谱
+    var clickNum = 1;
+
+    function checkView() {
+//        deleteKmapView();
+        var txtval = document.getElementById("txta_mapcont").value;
+        var arrs = txtval.split("\n");
+        var states = new Array();
+        var mobj = new Map();
+        var preobj = new Map();
+        var rowarrs = null;
+        var desc_;
+        for (var i = 0; i < arrs.length; i++) {
+            if (trim(arrs[i]) == "" || trim(arrs[i]) == null || trim(arrs[i]) == undefined) {
+                continue;
+            }
+            rowarrs = arrs[i].split("#");
+            if (rowarrs != null && rowarrs != undefined && rowarrs.length > 0) {
+                if (rowarrs.length >= 3) {
+                    desc_ = trim(rowarrs[2]);
+                    states[i] = (desc_ == null || desc_ == '' || desc_ == undefined) ? rowarrs[0] : desc_;
+                    mobj.put(trim(rowarrs[0]), states[i])
+                } else {
+                    states[i] = trim(rowarrs[0]);
+                    mobj.put(states[i], states[i])
+                }
+                if (rowarrs.length >= 2 && trim(rowarrs[1]) != null && trim(rowarrs[1]) != "" && trim(rowarrs[1]) != undefined) {
+                    preobj.put(trim(rowarrs[0]), trim(rowarrs[1]));
+                }
+
+            }
+        }
+        var eadges = new Array();
+        var eadgenum = 0;
+        preobj.each(function (key, value, index) {
+            rowarrs = value.split("&");
+            for (var i = 0; i < rowarrs.length; i++) {
+                if (trim(rowarrs[i]) != null && trim(rowarrs[i]) != "" && trim(rowarrs[i]) != undefined)
+                    eadges[eadgenum++] = [mobj.get(trim(rowarrs[i])), mobj.get(key)];
+            }
+        });
+        //console.log(states);
+        //console.log("----------------------------------------");
+        //console.log(eadges);
+        initSVG(states, eadges);
+//        clickNum++;
+    }
+
+</script>
+</body>
+</html>

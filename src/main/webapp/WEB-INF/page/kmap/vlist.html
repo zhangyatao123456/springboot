@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>图谱列表</title>
+    #parse("sys/header.html")
+</head>
+<body>
+<div id="rrapp" v-cloak>
+
+    <div v-show="showList">
+        <div class="grid-btn">
+            <div class="form-group col-sm-2">
+                <!--回车事件-->
+                <input type="text" class="form-control" v-model="q.kcode" @keyup.enter="query" placeholder="知识图谱">
+            </div>
+            <div class="form-group col-sm-2">
+                <input type="text" class="form-control" v-model="q.operator" @keyup.enter="query" placeholder="操作人">
+            </div>
+            <div class="form-group col-sm-2">
+                <input type="text" class="form-control" v-model="q.code" @keyup.enter="query" placeholder="知识点">
+            </div>
+            <a class="btn btn-default" @click="query">查询</a>
+            #if($shiro.hasPermission("kmap:kmaps:see"))
+            <a class="btn btn-primary" @click="see"><i class="fa fa-plus"></i>&nbsp;查看图谱</a>
+            #end
+            <!--#if($shiro.hasPermission("sys:user:update"))-->
+            <!--<a class="btn btn-primary" @click="update"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>-->
+            <!--#end-->
+            #if($shiro.hasPermission("kmap:kmaps:delete"))
+            <a class="btn btn-primary" @click="del"><i class="fa fa-trash-o"></i>&nbsp;删除图谱</a>
+            #end
+        </div>
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+    </div>
+</div>
+<!--添加随机参数为保证缓存的唯一性-->
+<script src="${rc.contextPath}/js/kmap/vlist.js?_${date.systemTime}"></script>
+</body>
+</html>

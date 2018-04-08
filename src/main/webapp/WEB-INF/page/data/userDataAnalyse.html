@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>用户数据行为分析</title>
+  #parse("sys/header.html")
+  <link rel="stylesheet" href="/statics/css/boot.css">
+</head>
+<body id="mainbody">
+<div id="rrapp">
+<div class="container col-md-10 col-md-offset-1">
+  <div class="panel panel-default">
+    <div class="panel-heading">用户行为数据分析平台
+      <a href="#" data-toggle="tooltip" title="学苗： 先测平均能力值<=0.6 学中：0.6<先测平均能力值<=0.8 学霸：0.8<先测平均能力值<=1"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a>
+    </div>
+      <div class="panel-body">
+        <ul class="topstats clearfix">
+          <li class="col-xs-6 col-lg-2">
+            <span class="title"><i class="fa fa-dot-circle-o"></i> 做过全部知识点</span>
+            <h3>{{userMertic.couTagCode}} 个</h3>
+          </li>
+          <li class="col-xs-6 col-lg-2">
+            <span class="title"><i class="fa fa-dot-circle-o"></i> 先测薄弱知识点</span>
+            <h3>{{userMertic.couWeakNodes}} 个</h3>
+          </li>
+          <li class="col-xs-6 col-lg-2">
+            <span class="title"><i class="fa fa-dot-circle-o"></i> 学习薄弱知识点</span>
+            <h3>{{userMertic.learnWeakNodes}} 个</h3>
+          </li>
+          <li class="col-xs-6 col-lg-2">
+            <span class="title" ><i class="fa fa-dot-circle-o"></i> 进步知识点个数</span>
+            <h3 ><i style="color:red">{{userMertic.badWeakNodes}}</i> 个</h3>
+          </li>
+          <li class="col-xs-6 col-lg-2">
+            <span class="title" ><i class="fa fa-dot-circle-o"></i> 退步知识点个数</span>
+            <h3><i style="color:green">{{userMertic.betterWeakNodes}}</i> 个</h3>
+          </li>
+          <li class="arrow"></li>
+        </ul>
+    </div>
+    </div>
+
+  <div class="panel panel-default">
+
+    <!--<div class="panel-heading">薄弱知识点分析-->
+      <!--<a href="#" data-toggle="tooltip" title="学苗： 先测平均能力值<=0.6 学中：0.6<先测平均能力值<=0.8 学霸：0.8<先测平均能力值<=1"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a>-->
+    <!--</div>-->
+    <div class="panel-body">
+      <!--薄弱知识点能力变化图div-->
+      <div id="main" style="width: 100%;height:600px;"></div>
+    </div>
+  </div>
+  <div class="panel panel-default">
+    <div class="panel-heading">用户系统使用记录
+      <a href="#" data-toggle="tooltip" title="学苗： 先测平均能力值<=0.6 学中：0.6<先测平均能力值<=0.8 学霸：0.8<先测平均能力值<=1"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a>
+    </div>
+    <div class="panel-body">
+      <table id="jqGrid" class="table table-bordered">
+      </table>
+      <div id="jqGridPager"></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<button type="button" class="btn btn-primary" style="position: absolute; left: 30px; top: 20px;" onclick="history.go(-1)">返回</button>
+
+<script src="/js/data/model/clone.js"></script>
+<script src="/js/echart/echarts.min.js"></script>
+
+<!--薄弱知识点能力变化图（echarts）-->
+<script>
+  //薄弱知识点能力变化图
+  var boruoChart = echarts.init(document.getElementById('main'),'infographic');
+  boruoChart.showLoading({
+    text: '暂无数据',
+    effect: 'bubble',
+    textStyle : {
+      fontSize : 20
+    }
+  });
+  var vm;
+
+
+  var boruoOption = {
+    noDataLoadingOption: {
+      text: '暂无数据',
+      effect: 'bubble',
+      effectOption: {
+        effect: {
+          n: 0
+        }
+      }
+    },
+    title : {
+      text: '薄弱知识点能力变化图',
+    },
+    tooltip : {
+      trigger: 'axis'
+    },
+    legend: {
+      data:['先测知识点能力值','学习能力值']
+    },
+    toolbox: {
+      show : true,
+      feature : {
+        saveAsImage : {show: true}
+      }
+    },
+    calculable : true,
+    xAxis : [
+      {
+        type : 'category',
+        //设置字体倾斜
+        boundaryGap : true,
+        axisLabel:{
+          interval:0,
+          rotate:45,//倾斜度 -90 至 90 默认为0
+          margin:10,
+          textStyle:{
+            color:"#000000"
+          },
+          //TODO
+          formatter:function (param){
+            if(param.length>5){
+              return param.substr(0,5)+"...";
+            }
+            return param;
+          }
+        },
+        data : []
+      }
+    ],
+    yAxis : [
+      {
+        type : 'value'
+      }
+    ],
+    series : [
+      {
+        name:'先测知识点能力值',
+        type:'bar',
+        data:[],
+      },
+      {
+        name:'学习能力值',
+        type:'bar',
+        data:[],
+        itemStyle:{
+          normal:{
+            color:'#006400 '
+          }
+        },
+      }
+    ]
+  };
+
+
+
+  $(function () {
+
+    var boruoChart = echarts.init(document.getElementById('main'));
+    boruoChart.setOption(boruoOption)
+//表格初始化
+    $("#jqGrid").jqGrid({
+      url: '/systemUse/getTable',
+      datatype: "json",
+      colModel: [
+        {
+          label: '课程名称',
+          name: 'sectionName',
+          sortable: false
+        },
+        {
+          label: '开始时间',
+          name: 'startTime',
+          width: 200,
+          sortable: false
+        },
+        {
+          label: '结束时间',
+          name: 'endTime',
+          width: 200,
+          sortable: false
+        },
+        {
+          label: '学生水平',
+          name: 'levelDesc',
+          sortable: false
+        },
+        {
+          label: '做题时间',
+          name: 'spendTime',
+          sortable: false
+        },
+        {
+          label: '平均时间（分钟）',
+          name: 'averageSpentTime',
+          sortable: false
+        },
+        {
+          label: '题量',
+          name: 'questionNum',
+          sortable: false
+        },
+        {
+          label: '正答率',
+          name: 'zhengdalv',
+          sortable: false
+        },
+      ],
+      viewrecords: false,
+      height: 385,
+      rowNum: 10,
+      rowList: [10, 30, 50],
+      rownumbers: true,
+      rownumWidth: 25,
+      autowidth: true,
+      multiselect: false,
+      pager: "#jqGridPager",
+      jsonReader: {
+        root: "page.list",
+        page: "page.currPage",
+        total: "page.totalPage",
+        records: "page.totalCount",
+        userId:1
+      },
+      prmNames: {
+        page: "page",
+        rows: "limit",
+        order: "order",
+      },
+      postData:{
+        userId:"$!{account}",
+        subject:"$!{subject}",
+        online:"$!{online}"
+      },
+      gridComplete: function () {
+        //隐藏grid底部滚动条
+        $("#jqGrid").closest(".ui-jqgrid-bdiv").css({"overflow-x": "hidden"});
+      }
+    });
+    vm = new Vue({
+      el: '#rrapp',
+      data: {
+        q: {
+          userId:"$!{account}",
+          subject:"$!{subject}",
+          online:"$!{online}"
+        },
+        userMertic:{
+          couTagCode:"--",
+          couWeakNodes:"--",
+          learnWeakNodes:"--",
+          badWeakNodes:"--",
+          betterWeakNodes:"--"
+        }
+      },
+      methods:{
+        countUserMertic:function () {
+          var data = {
+            userId:this.q.userId,
+            subject:this.q.subject,
+            online:this.q.online
+          }
+
+          $.ajax({
+            url: "/systemUse/countUserMertic",
+            data: data,
+            success: function (msg) {
+              console.log(msg);
+             vm.userMertic.badWeakNodes=msg.badWeakNodes;
+              vm.userMertic.betterWeakNodes=msg.betterWeakNodes;
+              vm.userMertic.couTagCode=msg.couTagCode;
+              vm.userMertic.couWeakNodes=msg.couWeakNodes;
+              vm.userMertic.learnWeakNodes=msg.learnWeakNodes;
+            },
+            error: function (data) {
+              console.log(data);
+            }
+          })
+        },
+        query: function () {
+          $("#jqGrid").jqGrid('setGridParam', {
+            postData: {
+              userId:vm.q.userId,
+              subject:vm.q.subject,
+              online:vm.q.online
+            },
+            page: 1
+          }).trigger("reloadGrid");
+        },
+       refreshChart:function() {
+      var data = {
+        userId:this.q.userId,
+        subject:this.q.subject,
+        online:this.q.online
+
+      }
+
+      $.ajax({
+        url: "/systemUse/getWeakChart",
+        data: data,
+        success: function (msg) {
+          console.log(msg);
+
+          boruoChart.clear()
+          boruoChart.dispose();
+          boruoChart = echarts.init(document.getElementById('main'));
+          boruoOption.xAxis[0].data = msg.loDescs;
+          boruoOption.series[0].data = msg.preAbilitys;
+          boruoOption.series[1].data = msg.studyAbilitys;
+          boruoChart.setOption(boruoOption)
+          if(boruoOption.xAxis[0].data.length<=0){
+            boruoChart.showLoading('default',{text:'暂无数据', effect: 'bubble',
+              effectOption: {
+                effect: {
+                  n: 0
+                }
+              }});
+          }
+        },
+        error: function (data) {
+          console.log(data);
+        }
+      })
+    }
+      },
+      mounted: function(){
+        this.refreshChart();
+        this.countUserMertic();
+        $("#jqGrid").jqGrid('setGridParam', {
+          postData: {
+            userId:this.q.userId,
+            subject:this.q.subject
+          },
+          page: 1
+        }).trigger("reloadGrid");
+      }
+    })
+  })
+</script>
+</body>
+</html>

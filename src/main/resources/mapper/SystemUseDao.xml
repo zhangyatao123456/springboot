@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yixue.xdatam.dao.data.SystemUseDao">
+
+
+  <select id="listSystemUseRecord"  parameterType="map" resultType="com.yixue.xdatam.entity.data.SystemUseRecord">
+    SELECT
+    t2.*,t3.`level`
+    FROM
+    (
+    SELECT
+    t.user_id userId,
+    t.course_id courseId,
+    t.section_id sectionId,
+    t.`online`,
+    SUM(t.spent_time) AS spendTime,
+    COUNT(t.question_id) AS questionNum,
+    avg(t.is_right) AS isRight,
+    SUM(t.spent_time) / COUNT(t.question_id) AS averageSpentTime,
+    Min(t.ctime) AS startime,
+    MAX(t.stime) AS endtime
+    FROM
+    dm_math_user_exam_detail t
+    <where>
+      <if test="userId!=null and userId.trim()!=''">AND t.user_id=${userId}</if>
+      <if test="online!=null and online.trim()!=''">AND t.online=${online}</if>
+    </where>
+    GROUP BY
+    t.`online`,
+    t.user_id,
+    t.course_id,
+    t.section_id
+    ) t2
+    LEFT JOIN xdatam.dm_math_course_section_level t3 ON t2.userId = t3.user_id
+    AND t2.sectionId = t3.section_id and t2.`online`=t3.`online`
+  </select>
+  <select id="totalSystemUseRecord" parameterType="map" resultType="Integer">
+    SELECT
+    count(*)
+    FROM
+    (
+    SELECT
+    t.user_id userId,
+    t.course_id courseId,
+    t.section_id sectionId,
+    t.`online`,
+    SUM(t.spent_time) AS spendTime,
+    COUNT(t.question_id) AS questionNum,
+    avg(t.is_right) AS isRight,
+    SUM(t.spent_time) / COUNT(t.question_id) AS averageSpentTime,
+    Min(t.ctime) AS startime,
+    MAX(t.stime) AS endtime
+    FROM
+    dm_math_user_exam_detail t
+    <where>
+      <if test="userId!=null and userId.trim()!=''">AND t.user_id=${userId}</if>
+      <if test="online!=null and online.trim()!=''">AND t.online=${online}</if>
+    </where>
+    GROUP BY
+    t.`online`,
+    t.user_id,
+    t.course_id,
+    t.section_id
+    ) t2
+    LEFT JOIN xdatam.dm_math_course_section_level t3 ON t2.userId = t3.user_id
+    AND t2.sectionId = t3.section_id and t2.`online`=t3.`online`
+  </select>
+
+</mapper>

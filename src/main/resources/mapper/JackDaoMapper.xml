@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yixue.xdatam.dao.JackDao" >
+<select id="updateRecordCount" parameterType="java.util.Map" resultMap="JackResultMap">
+  	select * from ai_kmap where mid=6
+		<if test="code != null and code != ''" >
+				and code = #{code,jdbcType=VARCHAR}				
+		</if>
+	</select>
+
+	<resultMap id="JackResultMap" type="com.yixue.xdatam.entity.JackEntity">
+		<result column="MID" property="id"/>
+		<result column="CODE" property="code"/>
+		<result column="SUB_CODE" property="subCode"/>
+	</resultMap>
+</mapper>

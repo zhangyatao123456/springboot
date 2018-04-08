@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>缓存列表</title>
+    #parse("sys/header.html")
+</head>
+<body>
+<div id="rrapp" v-cloak>
+    <div v-show="showList">
+        <div class="grid-btn">
+            <div class="form-group col-sm-2">
+                <input type="text" class="form-control" v-model="q.key" @keyup.enter="query" placeholder="键值">
+            </div>
+            <a class="btn btn-default" @click="query">查询</a>
+            <a class="btn btn-primary" @click="see"><i class="fa fa-plus"></i>&nbsp;查看缓存</a>
+            #if($shiro.hasPermission("sys:user:delete"))
+            <a class="btn btn-primary" @click="del"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+            #end
+
+            #if($shiro.hasPermission("cache:user:saveLikehood"))
+            <a class="btn btn-primary" @click="saveLikehood"><i class="fa fa-trash-o"></i>&nbsp;保存概率值集合</a>
+            #end
+
+            #if($shiro.hasPermission("cache:user:saveStatusData"))
+            <a class="btn btn-primary" @click="saveStatusData"><i class="fa fa-trash-o"></i>&nbsp;保存状态数据</a>
+            #end
+
+            <!--#if($shiro.hasPermission("sys:user:delete"))-->
+            <!--<a href="javascript:saveLikehood()" class="btn btn-primary" id="jobs">保存概率值集合</a>-->
+            <!--#end-->
+
+            <!--#if($shiro.hasPermission("sys:user:delete"))-->
+            <!--<a href="javascript:saveStatusData()" class="btn btn-primary" id="status">保存状态数据</a>-->
+            <!--#end-->
+
+        </div>
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+    </div>
+</div>
+
+<!--持久化缓存中likehood数据-->
+<script type="text/javascript">
+    function saveLikehood() {
+        var vhref = "${rc.contextPath}/cache/saveLikehood.shtml";
+        window.location.href = vhref;
+    }
+
+    <!--保存状态数据-->
+    function saveStatusData() {
+        var vhref = "${rc.contextPath}/cache/saveStatusData.shtml";
+        window.location.href = vhref;
+    }
+</script>
+
+<!--添加随机参数为保证缓存的唯一性-->
+<script src="${rc.contextPath}/js/cache/cachelist.js?_${date.systemTime}"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<!--专题图谱管理-->
+<script type="text/javascript" src="/js/kmap/oldVlist.js"></script>
+<div class="m-b-md">
+    <form class="form-inline" role="form" id="kmapSearchForm"
+          name="searchForm">
+        <div class="form-group">
+            <label class="control-label"> <span
+                    class="h4 font-thin v-middle">知识图谱编号:</span></label> <input
+                class="input-medium ui-autocomplete-input" id="kmapcode"
+                name="kmMapFormMap.kmcode">
+            &nbsp;&nbsp;
+        </div>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <a href="javascript:void(0)" class="btn btn-primary" id="akmap_search">查询</a>
+    </form>
+</div>
+<header class="panel-heading">
+    <div class="doc-buttons">
+        <button type="button" id="delKmap" class="btn btn-danger marR10">删除图谱</button>&nbsp;&nbsp;
+        <button type="button" id="viewKmap" class="btn btn-primary marR10">查看图谱</button>
+    </div>
+</header>
+<div class="table-responsive">
+    <div id="paging" class="pagclass"></div>
+</div>
+<script type="text/javascript">
+    //$("#mytable td").attr("title",$(this).text());
+
+    $("body").on("mouseover", "#mytable td", function () {
+        var thisVald = $(this).val()
+        ;$(this).attr('title', thisVald);
+    });
+</script>

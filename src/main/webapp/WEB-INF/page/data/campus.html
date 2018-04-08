@@ -1,0 +1,30 @@
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>校区列表</title>
+    #parse("sys/header.html")
+</head>
+<body>
+<div id="rrapp" v-cloak>
+
+    <div v-show="showList">
+        <div class="grid-btn">
+
+            <div class="form-group col-sm-2">
+                <input type="text" class="form-control" v-model="q.school_name" @keyup.enter="query" style="width: 90%" placeholder="请输入学校名称">
+            </div>
+
+            <a class="btn btn-default" @click="query">查询</a>
+        </div>
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+    </div>
+</div>
+<!--添加随机参数为保证缓存的唯一性-->
+<script src="${rc.contextPath}/js/data/campus.js?_${date.systemTime}">
+</script>
+
+</body>
+</html>

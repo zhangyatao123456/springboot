@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en"
+      class="app js no-touch no-android chrome no-firefox no-iemobile no-ie no-ie10 no-ie11 no-ios no-ios7 ipad">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>乂学人工智能中心</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="stylesheet" href="statics/css/bootstrap.min.css">
+    <link rel="stylesheet" href="statics/css/font-awesome.min.css">
+    <link rel="stylesheet" href="statics/css/AdminLTE.min.css">
+    <!-- AdminLTE Skins. Choose a skin from the css/skins
+         folder instead of downloading all of them to reduce the load. -->
+    <link rel="stylesheet" href="statics/css/all-skins.min.css">
+    <link rel="stylesheet" href="statics/css/main.css">
+    <link rel="shortcut icon" type="image/x-icon" href="statics/images/x16.ico">
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<style type="text/css">
+    body {
+        background-image: url('statics/images/9.jpg');
+        margin-top: 0px;
+        background-repeat: no-repeat;
+        background-size: 100% auto;
+    }
+
+    .normal_text {
+        padding: 2px 10px;
+        text-align: center;
+        line-height: 20px;
+        background: #2E363F;
+        color: #fff;
+    }
+
+    a {
+        color: #fff;
+        text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+        background-color: #49afcd;
+        margin: 5px;
+        padding: 3px;
+    }
+
+    a:link {
+        color: #fff
+    }
+
+</style>
+<body>
+<div class="login-box" id="rrapp" v-cloak>
+    <div class="normal_text">
+        <table style="width: 100%">
+            <tr>
+                <td align="left"><img src="statics/images/login_logo.png" alt="乂学人工智能中心-登录"></td>
+                <!--<td align="center"><h4 style="font-weight: bold;color: white;">登录－乂学人工智能中心</h4></td>-->
+                <!--       <td align="right"><img
+                               src="statics/images/logo_right.png"
+                               alt="Logo"></td>-->
+            </tr>
+        </table>
+
+    </div>
+    <!-- /.login-logo -->
+    <div class="login-box-body">
+        <!--v-if="error"-->
+        <div style="margin:10px;margin-left: 30px;height:18px;">
+            <div v-if="error">
+                <font style="font-size:12px;color:red"><i class="fa fa-exclamation-triangle"></i>&nbsp;{{errorMsg}}&nbsp;</font>
+            </div>
+        </div>
+        <div class="form-group has-feedback" style="margin-right: 30px;margin-left: 30px;">
+            <input type="text" class="form-control"
+                   style="background-color: rgb(250, 255, 189);background-image: none;color: rgb(0, 0, 0);"
+                   v-model="username" placeholder="账号">
+            <span class="glyphicon glyphicon-user form-control-feedback"></span>
+        </div>
+        <div class="form-group has-feedback" style="margin-right: 30px;margin-left: 30px;">
+            <input type="password" class="form-control"
+                   style="background-color: rgb(250, 255, 189);background-image: none;color: rgb(0, 0, 0);"
+                   v-model="password" placeholder="密码">
+            <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+        </div>
+        <div style="margin-right: 30px;margin-left: 30px;font-size:14px;margin-bottom:10px;">
+
+            <img alt="如果看不清楚，请单击图片刷新！" class="pointer" style="height:35px;width:30%;" :src="src" @click="refreshCode">
+            <input type="text" class="form-control"
+                   style="height:35px;width:25%;background-color: rgb(250, 255, 189);display:inline;background-image: none;color: rgb(0, 0, 0);"
+                   v-model="captcha" @keyup.enter="login" placeholder="验证码">
+
+            <a href="javascript:;" style="display:inline-block" @click="refreshCode">点击刷新</a>
+
+        </div>
+        <div class="row" style="padding-right:15px;">
+            <div class="col-xs-8">
+                <div class="checkbox icheck">
+                </div>
+            </div>
+            <!-- /.col -->
+            <div class="col-xs-4" style="width: 28%;padding-bottom: 10px;">
+                <button type="button" class="btn btn-primary btn-block btn-flat" style="background-color: #5bb75b;"
+                        @click="login">登&nbsp;&nbsp;录
+                </button>
+            </div>
+            <!-- /.col -->
+        </div>
+        <!-- /.social-auth-links -->
+
+    </div>
+    <!-- /.login-box-body -->
+</div>
+<!-- /.login-box -->
+<script src="statics/libs/jquery.min.js"></script>
+<script src="statics/libs/vue.min.js"></script>
+<script src="statics/libs/bootstrap.min.js"></script>
+<script src="statics/libs/jquery.slimscroll.min.js"></script>
+<script src="statics/libs/fastclick.min.js"></script>
+<script src="statics/libs/app.js"></script>
+<script type="text/javascript">
+    var vm = new Vue({
+        el: '#rrapp',
+        data: {
+            username: '',
+            password: '',
+            captcha: '',
+            error: false,
+            errorMsg: '',
+            src: 'captcha.jpg'
+        },
+        beforeCreate: function () {
+            if (self != top) {
+                top.location.href = self.location.href;
+            }
+        },
+        methods: {
+            refreshCode: function () {
+                this.src = "captcha.jpg?t=" + $.now();
+            },
+            login: function (event) {
+                var data = "username=" + vm.username + "&password=" + vm.password + "&captcha=" + vm.captcha;
+                $.ajax({
+                    type: "POST",
+                    url: "sys/login",
+                    data: data,
+                    dataType: "json",
+                    success: function (result) {
+                        if (result.code == 0) {//登录成功
+                            parent.location.href = 'index.html';
+                        } else {
+                            vm.error = true;
+                            vm.errorMsg = result.msg;
+
+                            vm.refreshCode();
+                        }
+                    }
+                });
+            }
+        }
+    });
+</script>
+</body>
+</html>

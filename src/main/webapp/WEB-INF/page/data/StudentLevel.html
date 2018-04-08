@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>学生水平情况</title>
+  #parse("sys/header.html")
+  <link rel="stylesheet" href="/statics/css/boot.css">
+</head>
+<body id="mainbody">
+<button type="button" class="btn btn-primary" style="position: absolute; left: 30px; top: 20px;" onclick="history.go(-1)">返回</button>
+
+<div class="container col-md-10 col-md-offset-1">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+        学生水平占比
+      <a href="#" data-toggle="tooltip" title="学苗： 先测平均能力值<=0.6 学中：0.6<先测平均能力值<=0.8 学霸：0.8<先测平均能力值<=1"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a>
+    </div>
+    <div class="panel-body">
+      <div class="col-md-6">
+        <div id="single" style="width: 100%;height:400px;"></div>
+      </div>
+      <div class="col-md-6">
+        <div id="average" style="width: 100%;height:400px;"></div>
+      </div>
+    </div>
+
+</div>
+    <div class="panel panel-default">
+      <div class="panel-heading">学生答题平均水平
+        <a href="#" data-toggle="tooltip" title="学苗： 先测平均能力值<=0.6 学中：0.6<先测平均能力值<=0.8 学霸：0.8<先测平均能力值<=1"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span></a>
+      </div>
+      <div class="panel-body">
+        <!--<div class="col-md-12">-->
+          <!--<div id="time" style="width: 100%;height:400px;"></div>-->
+        <!--</div>-->
+        <!--<div class="col-md-12">-->
+          <!--<div id="qnum" style="width: 100%;height:400px;"></div>-->
+        <!--</div>-->
+        <!--<div class="col-md-12">-->
+          <!--<div id="qspeed" style="width: 100%;height:400px;"></div>-->
+        <!--</div>-->
+        <div class="col-md-12">
+          <h3>暑期课${schoolName}做题时长</h3>
+          <table  class="table table-bordered">
+            <tr>
+              <td>学生水平</td>
+              <td>做题时间分钟</td>
+              <td>题量</td>
+              <td>速度（每题花费分钟）</td>
+            </tr>
+              #if($cshuqi.size()>0)
+                #foreach($result in $cshuqi)
+                  <tr>
+                    <td>$!result.levelId</td>
+                    <td>$!result.time</td>
+                    <td>$!result.qnum</td>
+                    <td>$!result.speed</td>
+                  </tr>
+                #end
+            #else
+              <tr>
+                <td colspan="4" style="text-align: center">暂无内容</td>
+              </tr>
+            #end
+          </table>
+        </div>
+        <div class="col-md-12">
+          <h3>暑期课整体做题时长</h3>
+          <table  class="table table-bordered">
+            <tr>
+              <td>学生水平</td>
+              <td>做题时间分钟</td>
+              <td>题量</td>
+              <td>速度（每题花费分钟）</td>
+            </tr>
+            #foreach($result in $ashuqi)
+            <tr>
+              <td>$!result.levelId</td>
+              <td>$!result.time</td>
+              <td>$!result.qnum</td>
+              <td>$!result.speed</td>
+            </tr>
+            #end
+          </table>
+        </div>
+        <div class="col-md-12">
+          <h3>秋季课${schoolName}做题时长</h3>
+          <table  class="table table-bordered">
+            <tr>
+              <td>学生水平</td>
+              <td>做题时间分钟</td>
+              <td>题量</td>
+              <td>速度（每题花费分钟）</td>
+            </tr>
+            #if($cqiuji.size()>0)
+            #foreach($result in $cqiuji)
+            <tr>
+              <td>$!result.levelId</td>
+              <td>$!result.time</td>
+              <td>$!result.qnum</td>
+              <td>$!result.speed</td>
+            </tr>
+            #end
+            #else
+            <tr>
+              <td colspan="4" style="text-align: center">暂无内容</td>
+            </tr>
+            #end
+          </table>
+        </div>
+        <div class="col-md-12">
+          <h3>秋季课整体做题时长</h3>
+          <table  class="table table-bordered">
+            <tr>
+              <td>学生水平</td>
+              <td>做题时间分钟</td>
+              <td>题量</td>
+              <td>速度（每题花费分钟）</td>
+            </tr>
+            #foreach($result in $aqiuji)
+            <tr>
+              <td>$!result.levelId</td>
+              <td>$!result.time</td>
+              <td>$!result.qnum</td>
+              <td>$!result.speed</td>
+            </tr>
+            #end
+          </table>
+        </div>
+      </div>
+    </div>
+
+  <script src="/js/data/model/clone.js"></script>
+  <script src="/js/echart/echarts.min.js"></script>
+  <script src="/js/echart/dataTool.js"></script>
+  <script src="/js/data/model/pie.js"></script>
+    <script src="/js/data/model/bar.js"></script>
+  <script>
+    //薄弱知识点能力变化图
+
+    var vm;
+    $(function () {
+      vm = new Vue({
+        el: '#rrapp',
+        data: {
+          q: {
+            school:"$!{school}",
+          },
+        },
+        methods:{
+          //校区学生水平对比图
+          refreshSingleChart:function() {
+            var title="$!{schoolName}校区学生水平占比";
+            var legend=["学霸","学中","学苗"];
+            var dataArray=[
+              #if($results.size()>0)
+                #foreach($result in $results)
+                   {value:$!{result.csnum}, name:'$!{result.levelId}'},
+                #end
+              #end
+            ];
+            var option=buildPie(title,legend,dataArray,"人次");
+            var singleChart = echarts.init(document.getElementById('single'));
+            singleChart.setOption(option);
+          },
+          //整体学生平均饼图
+          refreshAverageChart:function() {
+            var title="整体学生平均";
+            var legend=["学霸","学中","学苗"];
+            var dataArray=[
+               #if($results.size()>0)
+                #foreach($result in $results)
+                 {value:$!{result.asnum}, name:'$!{result.levelId}'},
+               #end
+              #end
+            ];
+            var option=buildPie(title,legend,dataArray,"人次");
+            var averageChart = echarts.init(document.getElementById('average'));
+            averageChart.setOption(option);
+          },
+          //做题时间柱状图
+          refreshTimeChart:function() {
+            var title="学生平均学习时间(单位毫秒)";
+            var legend=[
+              #if($courseTimes.size()>0)
+                #foreach($result in $courseTimes)
+                  #if($velocityCount==$courseTimes.size())
+                  '$!{result.levelId}'
+                  #else
+                  '$!{result.levelId}',
+                  #end
+                #end
+              #end
+            ];
+            var xAxis=[
+              #if($courseTimes.size()>0)
+                #foreach($result in $courseTimes)
+                  #if($velocityCount==$courseTimes.size())
+              '$!{result.levelId}'
+                  #else
+            '$!{result.levelId}',
+                  #end
+                #end
+              #end
+            ];
+            var option=buildBar(title,xAxis,true);
+            var serie0={
+              name:'$!{schoolName}学生平均学习时间',
+              type:'bar',
+              data:[
+                    #if($courseTimes.size()>0)
+                #foreach($result in $courseTimes)
+                  #if($velocityCount==$courseTimes.size())
+              '$!{result.cstime}'
+                  #else
+            '$!{result.cstime}',
+                  #end
+                #end
+              #end
+          ]
+          };
+            var serie1={
+              name:'整体平均学习时间',
+              type:'bar',
+              data:[
+                   #if($courseTimes.size()>0)
+                #foreach($result in $courseTimes)
+                  #if($velocityCount==$courseTimes.size())
+               '$!{result.astime}'
+                  #else
+               '$!{result.astime}',
+                  #end
+                #end
+              #end
+              ]
+            };
+             option=addSerie(option,serie0);
+            option=addSerie(option,serie1);
+            option=addYaxisName(option,"时间");
+            var cdatiChart = echarts.init(document.getElementById('time'));
+            cdatiChart.setOption(option);
+          },
+
+          refreshQNumChart:function() {
+            var title="学生平均做题数量";
+            var legend=[
+              #if($courseTimes.size()>0)
+                #foreach($result in $courseTimes)
+                  #if($velocityCount==$courseTimes.size())
+              '$!{result.levelId}'
+                  #else
+            '$!{result.levelId}',
+                  #end
+                #end
+              #end
+          ];
+            var xAxis=[
+              #if($courseTimes.size()>0)
+                #foreach($result in $courseTimes)
+                  #if($velocityCount==$courseTimes.size())
+              '$!{result.levelId}'
+                  #else
+            '$!{result.levelId}',
+                  #end
+                #end
+              #end
+          ];
+            var option=buildBar(title,xAxis,true);
+            var serie0={
+              name:'$!{schoolName}学生平均做题数量',
+              type:'bar',
+              data:[
+                    #if($courseTimes.size()>0)
+                #foreach($result in $courseTimes)
+                  #if($velocityCount==$courseTimes.size())
+              '$!{result.sqnum}'
+                  #else
+            '$!{result.sqnum}',
+                  #end
+                #end
+              #end
+          ]
+          };
+            var serie1={
+              name:'整体平均做题数量',
+              type:'bar',
+              data:[
+                   #if($courseTimes.size()>0)
+                #foreach($result in $courseTimes)
+                  #if($velocityCount==$courseTimes.size())
+              '$!{result.aqnum}'
+                  #else
+            '$!{result.aqnum}',
+                  #end
+                #end
+              #end
+          ]
+          };
+            option=addSerie(option,serie0);
+            option=addSerie(option,serie1);
+            option=addYaxisName(option,"题量");
+            var qnumChart = echarts.init(document.getElementById('qnum'));
+            qnumChart.setOption(option);
+          },
+
+          refreshSpeedChart:function() {
+            var title="学生平均做题速度";
+            var legend=[
+              #if($courseTimes.size()>0)
+                #foreach($result in $courseTimes)
+                  #if($velocityCount==$courseTimes.size())
+              '$!{result.levelId}'
+                  #else
+            '$!{result.levelId}',
+                  #end
+                #end
+              #end
+          ];
+            var xAxis=[
+              #if($courseTimes.size()>0)
+                #foreach($result in $courseTimes)
+                  #if($velocityCount==$courseTimes.size())
+              '$!{result.levelId}'
+                  #else
+            '$!{result.levelId}',
+                  #end
+                #end
+              #end
+          ];
+            var option=buildBar(title,xAxis,true);
+            var serie0={
+              name:'$!{schoolName}学生平均做题速度',
+              type:'bar',
+              data:[
+                    #if($courseTimes.size()>0)
+                #foreach($result in $courseTimes)
+                  #if($velocityCount==$courseTimes.size())
+              '$!{result.sspeed}'
+                  #else
+            '$!{result.sspeed}',
+                  #end
+                #end
+              #end
+          ]
+          };
+            var serie1={
+              name:'整体平均做题速度',
+              type:'bar',
+              data:[
+                   #if($courseTimes.size()>0)
+                #foreach($result in $courseTimes)
+                  #if($velocityCount==$courseTimes.size())
+              '$!{result.aspeed}'
+                  #else
+            '$!{result.aspeed}',
+                  #end
+                #end
+              #end
+          ]
+          };
+            option=addSerie(option,serie0);
+            option=addSerie(option,serie1);
+            option=addYaxisName(option,"速度");
+            var qspeedChart = echarts.init(document.getElementById('qspeed'));
+            qspeedChart.setOption(option);
+          },
+        },
+        created: function(){
+          this.refreshSingleChart();
+          this.refreshAverageChart();
+          this.refreshTimeChart();
+          this.refreshQNumChart();
+          this.refreshSpeedChart();
+        }
+      })
+    })
+  </script>
+  </body>
+  </html>

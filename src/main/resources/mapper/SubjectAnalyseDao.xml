@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yixue.xdatam.dao.data.SubjectAnalyseDao">
+    <resultMap id="SubjectAnalyseResultMap" type="com.yixue.xdatam.entity.data.SubjectAnalyseEntity">
+        <id property="id" column="id"/>
+        <result property="tagCode" column="tag_code"/>
+        <result property="tagName" column="tag_name"/>
+        <result property="serialNumber" column="serial_number"/>
+        <result property="questionId" column="question_id"/>
+        <result property="difficulty" column="difficulty"/>
+        <result property="tagCodeCount" column="tag_code_count"/>
+        <result property="spentTimeAvg" column="spent_time_avg"/>
+        <result property="estimatesTimeAvg" column="estimates_time_avg"/>
+        <result property="submitTime" column="submit_time"/>
+        <result property="rightRate" column="rightRate"/>
+        <result property="subject" column="subject"/>
+    </resultMap>
+
+    <select id="listSubject" parameterType="map" resultMap="SubjectAnalyseResultMap">
+        select
+        id,tag_code,tag_name,serial_number,question_id,difficulty,tag_code_count,spent_time_avg,estimates_time_avg,submit_time,CONCAT(right_rate*100,'%')
+        rightRate from question_id_analysis
+        <where>
+            <if test="difficulty!=null and difficulty.trim()!=''">AND difficulty=${difficulty}</if>
+            <if test="tagCodeCount!=null and tagCodeCount.trim()!=''">AND tag_code_count&gt;=${tagCodeCount}</if>
+            <if test="minRightRate!=null and minRightRate.trim()!=''">AND right_rate&gt;=${minRightRate}</if>
+            <if test="maxRightRate!=null and maxRightRate.trim()!=''">AND right_rate&lt;=${maxRightRate}</if>
+            <if test="subject!=null and subject.trim()!=''">AND subject=#{subject}</if>
+            <if test="startDate!=null and startDate.trim()!='' and startDate==endDate">
+                AND submit_time = #{startDate}
+            </if>
+            <if test="startDate!=null and startDate.trim()!='' and startDate!=endDate">
+                AND submit_time&gt;= #{startDate} AND submit_time&lt;= #{endDate}
+            </if>
+        </where>
+        <if test="orderByParam !=null  and orderByParam!=''">order by ${orderByParam}</if>
+        <if test="sortCondition !=null and sortCondition!=''">${sortCondition}</if>
+        <if test="offset != null and limit != null">limit #{offset}, #{limit}</if>
+    </select>
+
+    <select id="totalSubject" parameterType="map" resultType="Integer">
+        select count(*) from question_id_analysis
+        <where>
+            <if test="difficulty!=null and difficulty.trim()!=''">AND difficulty=${difficulty}</if>
+            <if test="tagCodeCount!=null and tagCodeCount.trim()!=''">AND tag_code_count&gt;=${tagCodeCount}</if>
+            <if test="minRightRate!=null and minRightRate.trim()!=''">AND right_rate&gt;=#{minRightRate}</if>
+            <if test="maxRightRate!=null and maxRightRate.trim()!=''">AND right_rate&lt;=#{maxRightRate}</if>
+            <if test="subject!=null and subject.trim()!=''">AND subject=#{subject}</if>
+            <if test="startDate!=null and startDate.trim()!='' and startDate==endDate">
+                AND submit_time = #{startDate}
+            </if>
+            <if test="startDate!=null and startDate.trim()!='' and startDate!=endDate">
+                AND submit_time&gt;= #{startDate} AND submit_time&lt;= #{endDate}
+            </if>
+        </where>
+    </select>
+
+    <select id="countRightRate" parameterType="map" resultType="com.yixue.xdatam.entity.data.SubjectAnalyseEntity">
+        SELECT
+        COUNT(DISTINCT question_id) question_id,
+        CONCAT(truncate(right_rate,1)*100,"%") rightRate,
+        difficulty
+        FROM
+        question_id_analysis
+        <where>
+            <if test="difficulty!=null and difficulty.trim()!=''">difficulty=${difficulty}</if>
+            <if test="tagCodeCount!=null and tagCodeCount.trim()!=''">AND tag_code_count&gt;=${tagCodeCount}</if>
+            <if test="minRightRate!=null and minRightRate.trim()!=''">AND right_rate&gt;=#{minRightRate}</if>
+            <if test="maxRightRate!=null and maxRightRate.trim()!=''">AND right_rate&lt;=#{maxRightRate}</if>
+            <if test="subject!=null and subject.trim()!=''">AND subject=#{subject}</if>
+            <if test="startDate!=null and startDate.trim()!='' and startDate==endDate">
+                AND submit_time = #{startDate}
+            </if>
+            <if test="startDate!=null and startDate.trim()!='' and startDate!=endDate">
+                AND submit_time&gt;= #{startDate} AND submit_time&lt;= #{endDate}
+            </if>
+        </where>
+        GROUP BY
+        difficulty,
+        truncate(right_rate,1)
+        ORDER BY
+        <if test="difficulty.trim()==''">difficulty,</if>
+        truncate(right_rate,1)
+    </select>
+
+    <select id="countDifficulty" parameterType="map" resultType="com.yixue.xdatam.entity.data.SubjectAnalyseEntity">
+        SELECT
+        COUNT(DISTINCT question_id) question_id,
+        difficulty
+        FROM
+        question_id_analysis
+        <where>
+            <if test="difficulty!=null and difficulty.trim()!=''">AND difficulty=${difficulty}</if>
+            <if test="tagCodeCount!=null and tagCodeCount.trim()!=''">AND tag_code_count&gt;=${tagCodeCount}</if>
+            <if test="minRightRate!=null and minRightRate.trim()!=''">AND right_rate&gt;=#{minRightRate}</if>
+            <if test="maxRightRate!=null and maxRightRate.trim()!=''">AND right_rate&lt;=#{maxRightRate}</if>
+            <if test="subject!=null and subject.trim()!=''">AND subject=#{subject}</if>
+            <if test="startDate!=null and startDate.trim()!='' and startDate==endDate">
+                AND submit_time = #{startDate}
+            </if>
+            <if test="startDate!=null and startDate.trim()!='' and startDate!=endDate">
+                AND submit_time&gt;= #{startDate} AND submit_time&lt;= #{endDate}
+            </if>
+        </where>
+        GROUP BY difficulty
+        ORDER BY difficulty
+    </select>
+</mapper>
